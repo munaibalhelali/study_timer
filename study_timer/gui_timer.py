@@ -127,7 +127,7 @@ def initalize_count_down():
 start_btn = Button(control_window, text = 'Start', command = start_timer)
 pause_btn = Button(control_window, text = 'Pause', command = toggle_pause_continue)
 stop_btn = Button(control_window, text = 'Reset', command = stop_timer)
-set_count_down_btn = Button(control_window, text='Set time', command= set_count_down)
+set_count_down_btn = Button(control_window, text='Set target', command= set_count_down)
 
 # Styling the label widget so that clock
 # will look more attractive
