@@ -8,5 +8,4 @@ setup(name='studytimer',
       description='A GUI based study timer',
       author='Munaib Al-Helali',
       author_email='moneebalhelaly@gmail.com',
-    #   py_modules=[glob.glob(os.path.join('src', 'gui_timer')),glob.glob(os.path.join('src','timer'))]      
      )
