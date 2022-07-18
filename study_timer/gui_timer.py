@@ -7,6 +7,7 @@ from timer import Timer
 from time import strftime
 from session import Session 
 import time as tm 
+import os 
 
 # creating tkinter windows
 root = Tk()
@@ -146,8 +147,10 @@ def initalize_count_down():
     timer.initalize_count_down(t_sec)
 
 def save_session(session:Session):
-    
-    with open('sessions.csv', 'a') as file:
+    data_path = f'{os.path.dirname(__file__)}/../data'
+    if not os.path.isdir(data_path):
+        os.mkdir(data_path)
+    with open(f'{data_path}/sessions.csv', 'a') as file:
         session_str = f'\n{tm.strftime("%d.%M.%Y",tm.localtime())},{get_formated_time(session.get_start_time())},{get_formated_time(session.get_end_time())},{get_formated_duration( session.get_total_breaks())}'
         file.writelines(session_str)   
 
