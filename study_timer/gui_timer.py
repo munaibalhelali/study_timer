@@ -5,6 +5,8 @@ from tkinter import *
 from tkinter.ttk import *
 from timer import Timer 
 from time import strftime
+from session import Session 
+import time as tm 
 
 # creating tkinter windows
 root = Tk()
@@ -24,42 +26,6 @@ hour_string=StringVar()
 min_string=StringVar()
 last_value_sec = ""
 last_value = "" 
-
-# This function is used to
-# display time on the label
-
-def time():
-  string = strftime('%D %H:%M:%S %p')
-  wall_clock.config(text = string)
-  wall_clock.after(1000, time)
-
-def start_timer():
-    timer.start()
-    update_timer_lbl()
-    if timer.started:
-        start_btn.config(text= "Restart")
-    else:
-        start_btn.config(text="Start")
-
-def update_timer_lbl():
-    timer.update()
-    str_duration = timer.get_formated_timer_duration()
-    timer_lbl.config(text=str_duration)
-    timer_lbl.after(1000, update_timer_lbl)
-
-def toggle_pause_continue():
-    if not timer.started:
-        return
-    if timer.paused:
-        timer.continue_timer()
-        pause_btn.config(text='Pause')
-    else:
-        timer.pause()
-        pause_btn.config(text='Continue')
-
-def stop_timer():
-    start_btn.config(text="Start")
-    timer.stop()
 
 count_down = False 
 hour_sb = Spinbox(
@@ -98,6 +64,61 @@ sec_sb = Spinbox(
     )
 sec_sb.set(0)
 
+curr_session = None
+break_start = None
+
+# This function is used to
+# display time on the label
+
+def time():
+  string = strftime('%D %H:%M:%S %p')
+  wall_clock.config(text = string)
+  wall_clock.after(1000, time)
+
+def start_timer():
+    global curr_session
+    timer.start()
+    update_timer_lbl()
+    curr_session = Session(tm.time())    
+    if timer.started:
+        start_btn.config(text= "Restart")
+    else:
+        start_btn.config(text="Start")
+
+def update_timer_lbl():
+    timer.update()
+    str_duration = timer.get_formated_timer_duration()
+    timer_lbl.config(text=str_duration)
+    timer_lbl.after(1000, update_timer_lbl)
+
+def toggle_pause_continue():
+    global break_start
+    global curr_session 
+
+    if not timer.started:
+        return
+    if timer.paused:
+        timer.continue_timer()
+        pause_btn.config(text='Pause')
+        if break_start is not None:
+            curr_session.add_break(break_start, tm.time())            
+    else:
+        timer.pause()
+        pause_btn.config(text='Continue')
+        break_start = tm.time()
+
+def stop_timer():
+    
+    global curr_session
+    start_btn.config(text="Start")
+    timer.stop()
+    if timer.paused:
+        pause_btn.config(text='Pause')
+        if break_start is not None:
+            curr_session.add_break(break_start, tm.time())
+    curr_session.set_end_time(tm.time())
+    save_session(curr_session)
+
 def set_count_down(): 
     global count_down
     
@@ -123,10 +144,28 @@ def initalize_count_down():
     s = int(sec_sb.get()) 
     t_sec = h*3600+m*60+s 
     timer.initalize_count_down(t_sec)
+
+def save_session(session:Session):
+    
+    with open('sessions.csv', 'a') as file:
+        session_str = f'\n{tm.strftime("%d.%M.%Y",tm.localtime())},{get_formated_time(session.get_start_time())},{get_formated_time(session.get_end_time())},{get_formated_duration( session.get_total_breaks())}'
+        file.writelines(session_str)   
+
+def get_formated_time(t):
+        time_str = tm.localtime(t)
+        time_str = tm.strftime('%H:%M:%S', time_str)
+        return time_str
+
+def get_formated_duration(duration):
+        H = int(duration//3600)
+        M = int((duration%3600)//60)
+        S = int((duration%3600)%60)
+        time_str = "%02d:%02d:%02d" % (H, M, S)
+        return time_str
 # Create a Button
 start_btn = Button(control_window, text = 'Start', command = start_timer)
 pause_btn = Button(control_window, text = 'Pause', command = toggle_pause_continue)
-stop_btn = Button(control_window, text = 'Reset', command = stop_timer)
+stop_btn = Button(control_window, text = 'End session', command = stop_timer)
 set_count_down_btn = Button(control_window, text='Set target', command= set_count_down)
 
 # Styling the label widget so that clock
